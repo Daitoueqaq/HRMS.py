@@ -1,0 +1,41 @@
+import yaml
+from time import localtime, strftime, sleep
+import copy
+import os
+import math
+import csv, json
+import functools
+from tqdm import tqdm 
+from ortools.sat.python import cp_model
+import numpy as np
+import chemparse
+import pubchempy as pcp 
+from collections import OrderedDict
+import random
+
+class Defaults:
+    def __init__(self, inFile=None) -> None:
+        if not inFile:
+            inFile = "config.yml"
+        with open("config.yml", "r") as file:
+            docs = yaml.safe_load_all(file)
+            for doc in docs:
+                self.dbPath = doc["defaultPaths"]["dataBasePath"]
+                self.invalPath = doc["defaultPaths"]["invalidsPath"]
+                self.elementsPath = doc["defaultPaths"]["elementsPath"]
+                self.massError = doc["defaultParameters"]["massError"]
+                self.elements = doc["defaultParameters"]["elements"]
+                self.trendFactor = doc["defaultParameters"]["trendFactor"]
+                self.comparisonFactor = doc["defaultParameters"]["comparisonFactor"]
+                self.rounding = doc["defaultParameters"]["rounding"]
+                self.diffMin = doc["defaultParameters"]["diffMin"]
+                self.diffMax = doc["defaultParameters"]["diffMax"]
+                self.maxUnsat = doc["defaultParameters"]["maxUnsaturation"]
+                self.intUnsat = doc["defaultParameters"]["intUnsaturation"]
+                self.maxFormulas = doc["defaultParameters"]["maxFormulas"]
+                if self.maxFormulas == -1:
+                    self.maxFormulas = 100
+                self.defectSort = doc["defaultParameters"]["massDefectIntensitySort"]
+                self.defectDensity = doc["defaultParameters"]["massDefectPlotDensity"]
+                self.loadingBar = doc["userPreferences"]["loadingBar"]
+                
