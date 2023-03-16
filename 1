@@ -37,5 +37,180 @@ class Defaults:
                     self.maxFormulas = 100
                 self.defectSort = doc["defaultParameters"]["massDefectIntensitySort"]
                 self.defectDensity = doc["defaultParameters"]["massDefectPlotDensity"]
-                self.loadingBar = doc["userPreferences"]["loadingBar"]
-                
+                self.loadingBar = doc["userPreferences"]["loadingBar"]        
+
+
+class ElementUtils:
+    def __init__(self) -> None:
+        D = Defaults()
+        self.elementsPath = D.elementsPath
+        self.invalPath = D.invalPath
+        self.allIsos = self.loadIsos()
+        self.allInvals = self.loadInvals()
+    def loadIsos(self):
+        everythingDict = {}
+        with open(self.elementsPath, newline =  "") as csvFile:
+            csvReader = csv.reader(csvFile, delimiter = ",")
+            everything = [row for row in csvReader][1:]
+        for iso in everything:
+            everythingDict[iso[0]] = {'mass':float(iso[1]), 'abundance':float(iso[2]), 'symbol':iso[3], 'element':iso[4]}
+        return everythingDict
+    def symbolToMass(self, symbol):
+        for iso in self.allIsos:
+            if self.allIsos[iso]['symbol'] == symbol:
+                return self.allIsos[iso]['mass']
+    def elFormatter(self, specifiedElements):
+        elements = []
+        for element in specifiedElements:
+            elementDict = {}
+            elementDict['mass'] = self.symbolToMass(element)
+            elementDict['name'] = element
+            elements.append(elementDict)
+        return elements
+    def loadInvals(self): #Optional function to get a list of locally stored formulas that are not verifiable by any DB
+        with open(self.invalPath, newline = "") as csvFile:
+            csvReader = csv.reader(csvFile, delimiter = ",")
+            invalMasses = []
+            invalFormulas = []
+            [(invalMasses.append(float(row[0])), invalFormulas.append(chemparse.parse_formula(row[1]))) for row in [row for row in csvReader][1:]]
+        return {"Masses" : np.array(invalMasses), "Formulas" : invalFormulas}
+    def appendToInvals(self, newData): #Appends new rows to invalids csv
+        with open(self.invalPath, "a", newline = "") as csvFile:
+            csvAppender = csv.writer(csvFile)
+            [csvAppender.writerow(row) for row in newData]
+    def reSortInvals(self):
+        sortedData = [["Mass", "Formula"]]
+        with open(self.invalPath, newline = "") as csvFile:
+            csvReader = csv.reader(csvFile, delimiter = ",")
+            data = []
+            [data.append((float(row[0]), row[1])) for row in [row for row in csvReader][1:] if (float(row[0]), row[1]) not in data]
+            sortedData += sorted(data)
+        with open(self.invalPath, "w", newline = "") as csvFile:
+            csvWriter = csv.writer(csvFile, delimiter = ",")
+            [csvWriter.writerow(row) for row in sortedData]
+        
+        
+        
+
+def rawSearch(folder): #Takes a folder as input and returns an alpabetized list of .RAW files present.
+    print(f"Searching {folder} for .RAW files")
+    raw_list = []
+    for filename in os.listdir(folder):
+        test = os.path.join(folder, filename)
+        if os.path.isfile(test) and test.endswith('.RAW'):
+            raw_list.append(test)
+    if len(raw_list) == 0:
+        raise NameError(f"Directory {folder} does not contain any .RAW files")
+    else:
+        return raw_list
+
+def massDefect(mz): #Returns the mass defect for a given mz
+    return (mz - math.floor(mz))
+
+
+def get_masses(mass_file_path): #Returns a list of monoisotopic masses from a .csv containing m/z values
+    mzs = []
+    with open(mass_file_path, newline = "") as csvfile:
+        reader = csv.reader(csvfile, delimiter = ",")
+        rnumber = 0
+        for row in reader:
+            if rnumber > 0 and  row:
+                mzs.append(float(row[0]) + 1.007825)
+            rnumber += 1
+    return mzs
+
+def getUnsaturation(formula): #Returns unsaturation degree for a formula in dictionary format
+    if 'C' in formula:
+        C = formula['C']
+    if 'H' in formula:
+        H = formula['H']
+    else:
+        H = 0
+    if 'N' in formula:
+        N = formula['N']
+    else: 
+        N = 0
+    if 'P' in formula:
+        N += formula['P']
+    X = 0
+    if 'F' in formula:
+        X+= formula['F']
+    if 'Cl' in formula:
+        X+= formula['Cl']
+    if 'Br' in formula:
+        X += formula['Br']
+    return (2*C + 2 + N - X - H) / 2
+
+
+def fDictString(fdict): #Converts formula in dictionary format to string format
+    fstring = ''
+    for element in fdict:
+        if fdict[element] > 1:
+            fstring += (element + str(fdict[element]))
+        elif fdict[element] == 1:
+            fstring += element
+    return fstring
+
+def average(l): #Computes arithmetic mean
+    avg = functools.reduce(lambda x, y: x + y, l) / len(l)
+    return avg
+
+
+def getHeaderSize(filePath): #Gets the size of the header in a csv
+    with open(filePath, newline = "") as csvFile:
+        reader  = csv.reader(csvFile, delimiter = ",")
+        data = [row for row in reader]
+    rowNum = 0
+    for row in data:
+        try:
+            float(row[0])
+            float(row[1])
+            return rowNum
+        except:
+            rowNum += 1
+
+def defaultName(): #Generates a timestamp followed by .csv for instances without an outPath
+    timeStamp = strftime("%Y-%m-%d@%H.%M.%S", localtime()) 
+    return timeStamp + ".csv"
+
+def defaultDirName(preText): #Generates a timestamp followed by .csv for instances without an outPath
+    timeStamp = strftime("%Y-%m-%d@%H.%M.%S", localtime()) 
+    return preText + timeStamp
+
+
+def toDict(fString): #Helper Method Converts String Formula to Dictionary Format
+    fDict = chemparse.parse_formula(fString)
+    for element in fDict.keys():
+        fDict[element] = int(fDict[element])
+    return fDict
+
+def padder():
+    lines = 3
+    print("\n".join(["" for i in range(lines)]))
+
+
+def readDB(dbPath = Defaults().dbPath): #Reads a given csv DB in the correct format and returns the 3 columns as 1 dictionary with 3 sublists
+    print(f"Loading local formulas from path \"{os.path.abspath(dbPath)}\"...")
+    with open(dbPath, newline = "") as csvFile:
+        reader = csv.reader(csvFile, delimiter = ",")
+        header = ['MONOISOTOPIC_MASS', 'MOLECULAR_FORMULA', 'IUPAC_NAME', '']
+        massCol, formulaCol, nameCol = [], [], []
+        for row in reader:
+            try:
+                dictFormula = toDict(row[1])
+                massCol.append(float(row[0]))
+                formulaCol.append(dictFormula)
+                nameCol.append(row[2:])
+            except:
+                pass
+    print(f"Loaded {len(massCol)} compounds.")
+    padder()
+    return {header[0]:massCol, header[1]:formulaCol, header[2]:nameCol}
+
+
+class Log: #Class to keep track of events
+    def __init__(self) -> None:
+        self.events = []
+    def __str__(self) -> str:
+        return "\n".join(self.events)
+
