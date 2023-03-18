@@ -1,0 +1,13 @@
+###################### importing necessary modes, those modes/envi are saved in your local directory################
+from comparison import *
+from dotRaw import *
+from mzCsv import *
+from elements import *
+from massDefect import *
+
+##################### Defining folders containing input data, import treatment folder and control folder##################
+##################### make sure you have such folders containing your all raw data in your local directory#################
+treatmentFolder = r"demo-02_WWTP\treatment"
+controlFolder = r"demo-02_WWTP\control"
+
+##################### These codes are used to instantiate (perform) codes from packages we already have "DotRaw" #####################
