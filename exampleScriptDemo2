@@ -11,3 +11,6 @@ treatmentFolder = r"demo-02_WWTP\treatment"
 controlFolder = r"demo-02_WWTP\control"
 
 ##################### These codes are used to instantiate (perform) codes from packages we already have "DotRaw" #####################
+TR = DotRAWs(inFolder = treatmentFolder)
+CR = DotRAWs(inFolder = controlFolder)
+
