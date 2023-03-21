@@ -13,17 +13,23 @@ import pubchempy as pcp
 from collections import OrderedDict
 import random
 
-class Defaults:
-    def __init__(self, inFile=None) -> None:
-        if not inFile:
+class Defaults: 
+##define a new python class called Defaults
+    def __init__(self, inFile=None) -> None: 
+    ##define a new method "_inti_" for the Default class, they use one argument "inFile", inFile is optional and defaults to none
+        if not inFile: 
+        ##checks if the inFile argument is None. If it is, it sets inFile to "config.yml"
             inFile = "config.yml"
-        with open("config.yml", "r") as file:
-            docs = yaml.safe_load_all(file)
-            for doc in docs:
+        with open("config.yml", "r") as file: 
+        ##opens the file "config.yml" in read-only mode and assigns it to a variable called file. 
+            docs = yaml.safe_load_all(file) 
+            ##reads the contents of the file using the safe_load_all function from the yaml module. The resulting object(s) are assigned to the "docs" variable
+            for doc in docs: 
+            ## start a for loop. The loop iterates over each document in docs, like db.csv, invalids.csv
                 self.dbPath = doc["defaultPaths"]["dataBasePath"]
                 self.invalPath = doc["defaultPaths"]["invalidsPath"]
-                self.elementsPath = doc["defaultPaths"]["elementsPath"]
-                self.massError = doc["defaultParameters"]["massError"]
+                self.elementsPath = doc["defaultPaths"]["elementsPath"] ##first three lines assign values from dbPath, invalPath, elementsPath to the defaultPath
+                self.massError = doc["defaultParameters"]["massError"] ##next many lines assign values from config.yml to defaultPath
                 self.elements = doc["defaultParameters"]["elements"]
                 self.trendFactor = doc["defaultParameters"]["trendFactor"]
                 self.comparisonFactor = doc["defaultParameters"]["comparisonFactor"]
@@ -32,13 +38,13 @@ class Defaults:
                 self.diffMax = doc["defaultParameters"]["diffMax"]
                 self.maxUnsat = doc["defaultParameters"]["maxUnsaturation"]
                 self.intUnsat = doc["defaultParameters"]["intUnsaturation"]
-                self.maxFormulas = doc["defaultParameters"]["maxFormulas"]
+                self.maxFormulas = doc["defaultParameters"]["maxFormulas"] ##if the maxFormula is set to -1, automatically change it to 100. Now it is 5
                 if self.maxFormulas == -1:
                     self.maxFormulas = 100
                 self.defectSort = doc["defaultParameters"]["massDefectIntensitySort"]
                 self.defectDensity = doc["defaultParameters"]["massDefectPlotDensity"]
-                self.loadingBar = doc["userPreferences"]["loadingBar"]        
-
+                self.loadingBar = doc["userPreferences"]["loadingBar"] ##load the loadingBar    
+#### this part of code assigns various parameters to "Defaults", and it allows the us to customize some of these parameters through config.yml
 
 class ElementUtils:
     def __init__(self) -> None:
