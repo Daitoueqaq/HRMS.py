@@ -72,7 +72,7 @@ class ElementUtils:
             everythingDict[iso[0]] = {'mass':float(iso[1]), 'abundance':float(iso[2]), 'symbol':iso[3], 'element':iso[4]}
             ##Adds a new entry to the "everythingDict" dictionary using the first column of the CSV row
         return everythingDict
-        ##Now, everythingDict contains all the isotopes data
+        ##Now, {everythingDict} and "self.allIsos" contains all the isotopes data.
     def symbolToMass(self, symbol):
         for iso in self.allIsos:
             if self.allIsos[iso]['symbol'] == symbol:
