@@ -11,6 +11,7 @@ treatmentFolder = r"demo-02_WWTP\treatment"
 controlFolder = r"demo-02_WWTP\control"
 
 ##################### These codes are used to instantiate (perform) codes from packages we already have "DotRaw" #####################
+##################### The inFolder argument specifies the path to the folder containing the data #####################
 TR = DotRAWs(inFolder = treatmentFolder)
 CR = DotRAWs(inFolder = controlFolder)
 
