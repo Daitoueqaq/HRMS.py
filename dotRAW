@@ -1,0 +1,109 @@
+########### Importing the required Python packages, MSFileReader from pymsfilereader and all the functions from mainUtils module #########
+
+from pymsfilereader import MSFileReader
+from mainUtils import *
+
+########### This line is defining a new class called DotRAWs ##########
+class DotRAWs:
+
+###########This is the class constructor, which is called when an instance of the DotRAWs class is created. ###########
+###########It initializes the class variables with the values passed as arguments.
+    def __init__(self, inFolder = None, inFile = None, inList = None, outPath = None) -> None:
+        self.inFolderRAW = inFolder
+        self.inFileRAW = inFile
+        self.inListRAW = inList
+        self.outPath = outPath
+        if inFolder and inFile:
+            raise("Instance of dotRAWs cannot process both a RAW file and a folder of RAW files at the same time.")       
+        elif inFolder and inList:
+            raise("Instance of dotRAWs cannot process both a list of RAW files and a folder of RAW files at the same time.")       
+        elif inList and inFile:
+            raise("Instance of dotRAWs cannot process both a list of RAW files and a RAW file at the same time.")       
+
+    def __getHeader(self, MSFile):
+        header = [
+                    ['SPECTRUM - MS'], 
+                    [MSFile.GetFileName()], 
+                    [MSFile.GetFilters()[0]], 
+                    ['Scan #: ' + str(MSFile.GetFirstSpectrumNumber()) + '-' + str(MSFile.GetLastSpectrumNumber())],
+                    ['RT: ' + str(round(MSFile.GetStartTime(), 2)) + '-' + str(round(MSFile.GetEndTime(), 2))],
+                    ['AV: ' + str(MSFile.GetNumSpectra())],
+                    ['Data points: ' + str(len(MSFile.GetAverageMassList(MSFile.GetFirstSpectrumNumber(),MSFile.GetLastSpectrumNumber())[0][0]))],
+                    ['Mass', 'Intensity']
+                ]
+
+        return header
+        
+    def __writeFile(self):
+            with open(self.outPath, 'w', newline = '') as csvFile:
+                csvWriter = csv.writer(csvFile)
+                for idx in range(max(self.spectraLens)):
+                    row = []
+                    for spectrum in self.spectra: 
+                        if len(spectrum[idx]) == 2:
+                            row += spectrum[idx]
+                        
+                        elif len(spectrum[idx]) == 1:
+                            row += spectrum[idx]
+                            row += ['']
+                        else:
+                            row += ['','']
+                        row += ['','']
+                    csvWriter.writerow(row)
+
+    def __getSpectrum(self, fileName):
+        rawFile = MSFileReader(fileName)
+        averaged = rawFile.GetAverageMassList(rawFile.GetFirstSpectrumNumber(),rawFile.GetLastSpectrumNumber())[0]
+        spectrum  = self.__getHeader(rawFile)
+
+        for mz, i in zip(averaged[0], averaged[1]):
+            spectrum.append([mz,i])
+        
+        return spectrum
+
+    def getSpectra(self):
+        if not self.outPath:
+            self.outPath = os.path.join(self.inFolderRAW, "spectraFrom" + defaultName())
+        if self.inFolderRAW:
+            self.readingList = []
+            for dirpath, dirnames, filenames in os.walk(self.inFolderRAW):
+                for filename in [f for f in filenames if f.endswith(".RAW")]:
+                    self.readingList.append(os.path.join(dirpath, filename))
+            if not self.outPath:
+                self.outPath = os.path.join(self.inFolderRAW, "spectraFrom" + defaultName())
+        else:
+            self.readingList = [os.path.basename(file) for file in self.inListRAW]
+            if not self.outPath:
+                self.outPath = "spectraFrom" + defaultName()
+        print(f'Averaging scans in files {", ".join([os.path.basename(file) for file in self.readingList])} and writing to output {self.outPath}')
+        self.spectra = []
+        self.spectraLens = []
+        for filename in tqdm(self.readingList):
+            spectrum = (self.__getSpectrum(filename))
+            self.spectra.append(spectrum)
+            self.spectraLens.append(len(spectrum))
+        for spectrum in self.spectra: 
+            while len(spectrum) < max(self.spectraLens):
+                spectrum.append('')
+
+        self.__writeFile()
+
+        return self.outPath
+
+    def getSpectrum(self):
+        if not self.outPath:
+            self.outPath = f"{self.inFileRAW}{defaultName()}"
+        self.readingList = [self.inFileRAW]
+        self.spectra = []
+        self.spectraLens = []
+        print(f'Averaging scans in file {str(self.readingList)[1:-1]} and writing to output {self.outPath}')
+        for filename in self.readingList:
+            spectrum = (self.__getSpectrum(filename))
+            self.spectra.append(spectrum)
+            self.spectraLens.append(len(spectrum))
+        for spectrum in self.spectra: 
+            while len(spectrum) < max(self.spectraLens):
+                spectrum.append('')
+        self.__writeFile()
+
+        return self.outPath
