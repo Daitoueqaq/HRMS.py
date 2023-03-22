@@ -86,7 +86,7 @@ class ElementUtils:
             elementDict['name'] = element
             elements.append(elementDict)
         return elements
-        ##This code define a "elFormatter" function that could output a list of dictionaries that contains "mass", "symbol". and "name" of those elements
+        ##This code define a "elFormatter" function that could output a list of dictionaries that contains "mass", "symbol", and "name" of those elements
     def loadInvals(self): #Optional function to get a list of locally stored formulas that are not verifiable by any DB
         with open(self.invalPath, newline = "") as csvFile:
             csvReader = csv.reader(csvFile, delimiter = ",")
@@ -99,7 +99,7 @@ class ElementUtils:
         with open(self.invalPath, "a", newline = "") as csvFile:
             csvAppender = csv.writer(csvFile)
             [csvAppender.writerow(row) for row in newData]
-            ##
+            ##This code define a "appendToInvails" function to add new rows to the CSV file containing locally stored formulas that are not verifiable by any database
     def reSortInvals(self):
         sortedData = [["Mass", "Formula"]]
         with open(self.invalPath, newline = "") as csvFile:
