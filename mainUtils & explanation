@@ -77,6 +77,7 @@ class ElementUtils:
         for iso in self.allIsos:
             if self.allIsos[iso]['symbol'] == symbol:
                 return self.allIsos[iso]['mass']
+                ##This code define a "symbolToMass", started a for loop to give out a new "mass" attribute based on the "symbol"
     def elFormatter(self, specifiedElements):
         elements = []
         for element in specifiedElements:
@@ -85,6 +86,7 @@ class ElementUtils:
             elementDict['name'] = element
             elements.append(elementDict)
         return elements
+        ##This code define a "elFormatter" function that could output a list of dictionaries that contains "mass", "symbol". and "name" of those elements
     def loadInvals(self): #Optional function to get a list of locally stored formulas that are not verifiable by any DB
         with open(self.invalPath, newline = "") as csvFile:
             csvReader = csv.reader(csvFile, delimiter = ",")
@@ -92,10 +94,12 @@ class ElementUtils:
             invalFormulas = []
             [(invalMasses.append(float(row[0])), invalFormulas.append(chemparse.parse_formula(row[1]))) for row in [row for row in csvReader][1:]]
         return {"Masses" : np.array(invalMasses), "Formulas" : invalFormulas}
+        ##define a function called "loadInvals". This function firstly opened InvalPath, and construct a dictionary containing two keys "Masses" and "Formulas".
     def appendToInvals(self, newData): #Appends new rows to invalids csv
         with open(self.invalPath, "a", newline = "") as csvFile:
             csvAppender = csv.writer(csvFile)
             [csvAppender.writerow(row) for row in newData]
+            ##
     def reSortInvals(self):
         sortedData = [["Mass", "Formula"]]
         with open(self.invalPath, newline = "") as csvFile:
