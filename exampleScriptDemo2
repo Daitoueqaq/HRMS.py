@@ -15,3 +15,14 @@ controlFolder = r"demo-02_WWTP\control"
 TR = DotRAWs(inFolder = treatmentFolder)
 CR = DotRAWs(inFolder = controlFolder)
 
+##################### This step output initial peak data, and store the data to a csv file ###################################
+treatmentSpectra = TR.getSpectra() #Stores path to treatment spectra csv
+controlSpectra = CR.getSpectra() #Stores path to treatment spectra csv
+
+##################### This step output selected peak data, and store the data to a csv file ###################################
+TP = Peaks(filePath = treatmentSpectra) #Instantiate peak object
+CP = Peaks(filePath = controlSpectra)
+
+treatmentPeaks = TP.isolatePeaks()#Isolates peaks
+controlPeaks = CP.isolatePeaks()
+
